@@ -1,0 +1,859 @@
+<title>Arise Life RPG</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#05070d">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Rajdhani:wght@500;600;700&display=swap">
+<style>
+/* Layout: mobile-first single column of RPG "system windows"; bottom tab bar on phones, left rail on wide screens. */
+:root{
+  --bg:#05070d; --bg2:#0a1020; --panel:#0c1428; --panel2:#111b36;
+  --line:#22305a; --line2:#2f4488;
+  --fg:#e4eaff; --muted:#8f9bc0; --dim:#5b6891;
+  --blue:#35b0ff; --purple:#9b6bff; --good:#3ddc97; --warn:#ffc552; --bad:#ff6b8b;
+  --font-display:"Rajdhani","Segoe UI",system-ui,sans-serif;
+  --font-body:"Barlow","Segoe UI",system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:radial-gradient(1200px 600px at 80% -10%,rgba(155,107,255,.14),transparent 60%),radial-gradient(900px 500px at -10% 10%,rgba(53,176,255,.12),transparent 60%),var(--bg);
+  background-attachment:fixed;
+  color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:12px 96px;min-height:100vh;
+}
+h1,h2,h3{font-family:var(--font-display);margin:0;letter-spacing:.06em;text-transform:uppercase;text-wrap:balance}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.wrap{max-width:1000px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0 14px}
+.brand{font-family:var(--font-display);font-weight:700;letter-spacing:.28em;font-size:15px;color:var(--blue)}
+.brand b{color:var(--purple)}
+.mini{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;background:rgba(6,10,22,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);
+  padding:4px max(6px,env(safe-area-inset-right,0px)) calc(4px + env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-left,0px))}
+nav button{flex:1;min-height:52px;background:none;border:0;color:var(--dim);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-family:var(--font-display);font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;border-radius:8px}
+nav button i{font-style:normal;font-size:17px;line-height:1}
+nav button.on{color:var(--blue);background:linear-gradient(180deg,rgba(53,176,255,.14),transparent)}
+@media(min-width:900px){
+  body{padding-left:calc(110px + 16px);padding-bottom:40px}
+  nav{top:0;right:auto;width:96px;flex-direction:column;justify-content:flex-start;gap:4px;padding:20px 8px;border-top:0;border-right:1px solid var(--line)}
+}
+#view{animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.grid{display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:760px){.grid.two{grid-template-columns:1fr 1fr}.col2{grid-column:1/-1}}
+.panel{position:relative;background:linear-gradient(180deg,rgba(17,27,54,.82),rgba(10,16,32,.88));border:1px solid var(--line);padding:14px;min-width:0}
+.panel::before,.panel::after{content:"";position:absolute;width:12px;height:12px;border:2px solid var(--blue);pointer-events:none}
+.panel::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+.panel::after{bottom:-1px;right:-1px;border-left:0;border-top:0;border-color:var(--purple)}
+.panel>h2{font-size:15px;color:var(--blue);display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;font-weight:600}
+.panel>h2 small{font-family:var(--font-body);letter-spacing:0;text-transform:none;color:var(--muted);font-size:12px;font-weight:400}
+.hero{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center}
+.badge{width:74px;height:84px;display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:38px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:linear-gradient(145deg,var(--blue),var(--purple));color:#05070d;animation:glow 3.5s ease-in-out infinite}
+@keyframes glow{0%,100%{filter:drop-shadow(0 0 4px rgba(53,176,255,.5))}50%{filter:drop-shadow(0 0 12px rgba(155,107,255,.8))}}
+.name-input{background:transparent;border:0;border-bottom:1px dashed var(--line2);font-family:var(--font-display);font-size:26px;font-weight:700;letter-spacing:.06em;width:100%;padding:2px 0;min-height:40px;text-transform:uppercase}
+.name-input:focus{outline:none;border-bottom-color:var(--blue)}
+.sub{color:var(--muted);font-size:13px;letter-spacing:.04em}
+.bar{height:12px;background:#060a16;border:1px solid var(--line);overflow:hidden;position:relative}
+.bar>span{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));transition:width .8s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 12px rgba(53,176,255,.5)}
+.bar.sm{height:8px}
+.xprow{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin:10px 0 4px;font-variant-numeric:tabular-nums;gap:8px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+@media(min-width:560px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stat{background:rgba(6,10,22,.7);border:1px solid var(--line);padding:8px 10px}
+.stat b{display:block;font-family:var(--font-display);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.btn{min-height:44px;padding:0 16px;border:1px solid var(--line2);background:rgba(53,176,255,.08);color:var(--fg);font-family:var(--font-display);font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:14px;transition:background .15s,transform .1s,border-color .15s}
+.btn:hover{background:rgba(53,176,255,.2);border-color:var(--blue)}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:linear-gradient(90deg,#1f7fd6,#7a4fe0);border-color:transparent;color:#fff}
+.btn.ghost{background:transparent}
+.btn.danger{border-color:#7a2d45;color:var(--bad);background:rgba(255,107,139,.06)}
+.btn.sm{min-height:36px;padding:0 10px;font-size:12px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.seg{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.seg button{min-height:40px;padding:0 12px;background:transparent;border:1px solid var(--line);color:var(--muted);font-family:var(--font-display);font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:13px}
+.seg button.on{color:#fff;border-color:var(--blue);background:rgba(53,176,255,.15)}
+.qrow{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid rgba(34,48,90,.7)}
+.qrow:first-of-type{border-top:0}
+.qrow.done .qtitle{text-decoration:line-through;color:var(--dim)}
+.qrow.paused{opacity:.55}
+.chk{width:44px;height:44px;border:2px solid var(--line2);background:#060a16;color:var(--good);font-size:22px;display:grid;place-items:center;transition:border-color .15s,background .15s}
+.chk:hover{border-color:var(--blue)}
+.done .chk{border-color:var(--good);background:rgba(61,220,151,.12)}
+.qtitle{font-weight:600;overflow-wrap:anywhere}
+.qmeta{display:flex;flex-wrap:wrap;gap:6px;margin-top:3px;font-size:12px;color:var(--muted);align-items:center}
+.chip{border:1px solid var(--line);padding:0 6px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);line-height:18px}
+.chip.e{color:var(--good)}.chip.n{color:var(--blue)}.chip.h{color:var(--warn)}.chip.x{color:var(--purple)}
+.qxp{font-family:var(--font-display);font-weight:700;color:var(--blue);font-size:17px;font-variant-numeric:tabular-nums}
+.qacts{grid-column:2/-1;display:flex;flex-wrap:wrap;gap:6px}
+.empty{color:var(--muted);padding:10px 0;font-size:14px}
+label{display:block;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:10px}
+input,select,textarea{display:block;width:100%;min-height:44px;margin-top:4px;background:#060a16;border:1px solid var(--line);padding:8px 10px;color:var(--fg);font-size:16px;text-transform:none;letter-spacing:0}
+input[type=range]{padding:0;min-height:32px;accent-color:var(--purple)}
+textarea{min-height:70px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hint{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+.hint.warn{color:var(--warn)}
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(2,4,10,.78);display:grid;place-items:center;padding:16px;animation:fade .2s ease;overflow:auto}
+.dialog{width:100%;max-width:520px;max-height:92vh;overflow:auto;background:var(--panel);border:1px solid var(--line2);padding:18px;box-shadow:0 0 40px rgba(53,176,255,.18)}
+.dialog h3{color:var(--blue);margin-bottom:6px}
+.toasts{position:fixed;left:0;right:0;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:60;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;padding:0 16px}
+.toast{background:#0b1430;border:1px solid var(--blue);padding:9px 14px;font-size:14px;max-width:420px;animation:fade .3s ease;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.toast.ach{border-color:var(--purple)}.toast.warn{border-color:var(--warn)}.toast.level{border-color:var(--good)}
+.lvl{text-align:center}
+.lvl .big{font-family:var(--font-display);font-size:72px;font-weight:700;background:linear-gradient(90deg,var(--blue),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1;animation:glow 2s infinite}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0;border-top:1px solid rgba(34,48,90,.7);font-size:14px}
+.row:first-of-type{border-top:0}
+.row>div{min-width:0;overflow-wrap:anywhere}
+.row .pos{color:var(--good)}.row .neg{color:var(--bad)}
+.row.void{opacity:.45;text-decoration:line-through}
+.attr{display:grid;grid-template-columns:88px 1fr 36px;gap:8px;align-items:center;margin:7px 0;font-size:13px}
+.attr b{font-family:var(--font-display);text-align:right;font-size:17px}
+.sumgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sumgrid .stat b{font-size:19px}
+.habit{display:grid;grid-template-columns:1fr auto;gap:6px 10px;padding:10px 0;border-top:1px solid rgba(34,48,90,.7)}
+.habit:first-of-type{border-top:0}
+.hdays{display:flex;gap:4px}
+.hcell{width:36px;height:40px;border:1px solid var(--line);background:#060a16;font-size:10px;color:var(--dim);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0}
+.hcell.on{background:rgba(61,220,151,.18);border-color:var(--good);color:var(--good)}
+.hcell.rest{border-style:dashed;color:var(--purple)}
+.hcell.today{border-color:var(--blue)}
+.timer{font-family:var(--font-display);font-size:34px;font-weight:700;letter-spacing:.1em;color:var(--blue);font-variant-numeric:tabular-nums}
+.acc{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid rgba(34,48,90,.7)}
+.acc:first-of-type{border-top:0}
+.acc.locked{opacity:.4}
+.acc .g{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--purple);color:var(--purple);font-family:var(--font-display);font-weight:700;flex:none}
+.crit{display:grid;grid-template-columns:1fr 90px auto;gap:6px;align-items:end;margin-top:8px}
+.crit .sp{grid-column:1/-2}
+svg text{fill:var(--muted);font-family:var(--font-body)}
+.chartwrap svg{width:100%;height:auto;display:block}
+pre.json{background:#060a16;border:1px solid var(--line);padding:10px;max-height:180px;overflow:auto;font-size:12px;white-space:pre-wrap;word-break:break-all;margin:8px 0 0}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+td,th{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left}
+.doc p,.doc li{color:var(--muted);font-size:14px}
+.doc code{background:#060a16;padding:1px 5px;border:1px solid var(--line);color:var(--fg)}
+.banner{border:1px solid var(--warn);background:rgba(255,197,82,.08);padding:8px 12px;margin-bottom:12px;font-size:13.5px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <div class="top"><div class="brand">ARISE <b>//</b> LIFE RPG</div><div class="mini" id="topinfo"></div></div>
+  <div id="banners"></div>
+  <main id="view"></main>
+</div>
+<nav id="nav" aria-label="Main"></nav>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+(()=>{
+'use strict';
+/* ============ constants ============ */
+const KEY='lifeRPG.v1', PREV='lifeRPG.v1.prev';
+const ATTRS={STR:'Strength',INT:'Intelligence',DIS:'Discipline',END:'Endurance',SOC:'Social'};
+const DIFF={easy:{label:'Easy',xp:10,c:'e'},normal:{label:'Normal',xp:25,c:'n'},hard:{label:'Hard',xp:50,c:'h'},epic:{label:'Epic',xp:100,c:'x'}};
+const KINDS={
+  study:{label:'Study',attr:'INT',cap:240},skill:{label:'Skill practice',attr:'INT',cap:180},
+  workout:{label:'Workout',attr:'STR',cap:90},running:{label:'Running',attr:'END',cap:90},social:{label:'Social',attr:'SOC',cap:120}};
+const RANKS=[{min:1,r:'E',t:'Novice'},{min:10,r:'D',t:'Apprentice'},{min:20,r:'C',t:'Adept'},{min:35,r:'B',t:'Veteran'},{min:50,r:'A',t:'Elite'},{min:75,r:'S',t:'Sovereign'}];
+const METRICS={xp:'XP earned',studyMin:'Study minutes',skillMin:'Skill minutes',workoutMin:'Workout minutes',runKm:'Running km',questsDone:'Quests completed',habitChecks:'Habit check-ins'};
+const CRIT={studyMin:'Study minutes',skillMin:'Skill practice minutes',workoutCount:'Workout sessions',runKm:'Running km',questsDone:'Quests completed',habitChecks:'Habit check-ins',activeDays:'Active days',manual:'Custom count (manual)'};
+const CRIT_MAX={studyMin:3000,skillMin:2000,workoutCount:6,runKm:40,questsDone:100,habitChecks:100,activeDays:6,manual:1000};
+const DIFF_BONUS={easy:100,normal:200,hard:350,epic:500};
+const needFor=L=>100+40*(L-1);          // XP to go from level L to L+1
+const TABS=[['status','◈','Status'],['quests','✦','Quests'],['track','▲','Track'],['boss','◆','Boss'],['log','≡','Log'],['system','✱','System']];
+
+/* ============ dates (local time, YYYY-MM-DD strings) ============ */
+const pad=n=>String(n).padStart(2,'0');
+const fmtDate=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseDate=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const today=()=>fmtDate(new Date());
+const addDays=(s,n)=>{const d=parseDate(s);d.setDate(d.getDate()+n);return fmtDate(d)};
+const diffDays=(a,b)=>Math.round((parseDate(a)-parseDate(b))/864e5);
+const weekStart=s=>addDays(s,-((parseDate(s).getDay()+6)%7)); // Monday
+const weekEnd=w=>addDays(w,6);
+const validDate=s=>/^\d{4}-\d{2}-\d{2}$/.test(s||'')&&fmtDate(parseDate(s))===s;
+const shortDate=s=>parseDate(s).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+const dowLetter=s=>['S','M','T','W','T','F','S'][parseDate(s).getDay()];
+
+/* ============ utils ============ */
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
+const num=(v,d=0)=>{const n=Number(v);return Number.isFinite(n)?n:d};
+const $=(s,r=document)=>r.querySelector(s);
+const opts=(map,sel,label=v=>v)=>Object.entries(map).map(([k,v])=>`<option value="${esc(k)}"${k===sel?' selected':''}>${esc(typeof v==='object'?v.label:v)}</option>`).join('');
+
+/* ============ state ============ */
+let state, storageOK=true, loadNote='';
+const ui={view:'status',questTab:'daily',logTab:'ledger',metric:'xp',range:'14',timerTick:null};
+function defaultState(){return{app:'arise-life-rpg',version:1,player:{name:'Player',createdAt:today()},quests:[],completions:[],ledger:[],activities:[],habits:[],habitLogs:[],restDays:[],bosses:[],achievements:{},audit:[],flags:{},settings:{lastBackup:null},timer:null,lastLevel:1,lastActive:null}}
+function migrate(o){
+  if(!o||typeof o!=='object'||Array.isArray(o))throw new Error('Not a valid data object');
+  const s=Object.assign(defaultState(),o);
+  for(const k of ['quests','completions','ledger','activities','habits','habitLogs','restDays','bosses','audit'])if(!Array.isArray(s[k]))s[k]=[];
+  if(!s.player||typeof s.player!=='object')s.player={name:'Player',createdAt:today()};
+  s.player.name=String(s.player.name||'Player').slice(0,24);
+  if(!s.achievements||typeof s.achievements!=='object'||Array.isArray(s.achievements))s.achievements={};
+  s.flags=s.flags&&typeof s.flags==='object'?s.flags:{};
+  s.settings=Object.assign({lastBackup:null},s.settings||{});
+  s.lastLevel=Math.max(1,num(s.lastLevel,1));
+  return s;
+}
+function load(){
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(raw){
+      try{return migrate(JSON.parse(raw))}
+      catch(e){try{localStorage.setItem(KEY+'.corrupt',raw)}catch(_){}loadNote='Saved data could not be read. A copy was kept under "lifeRPG.v1.corrupt". Starting fresh.'}
+    }
+  }catch(e){storageOK=false}
+  return null;
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));storageOK=true}catch(e){storageOK=false}}
+
+/* ============ ledger / XP ============ */
+const totalXP=()=>Math.max(0,state.ledger.reduce((a,e)=>a+(e.voided?0:e.xp),0));
+function levelInfo(total){let L=1,rem=total;while(rem>=needFor(L)){rem-=needFor(L);L++}return{level:L,into:rem,need:needFor(L)}}
+const rankOf=L=>[...RANKS].reverse().find(r=>L>=r.min);
+function attrXP(a){return state.ledger.reduce((s,e)=>s+(!e.voided&&e.attr===a?e.xp:0),0)}
+function attrInfo(a){const x=Math.max(0,attrXP(a));const lv=1+Math.floor(Math.sqrt(x/15));const lo=15*(lv-1)**2,hi=15*lv**2;return{lv,x,pct:Math.round((x-lo)/(hi-lo)*100)}}
+function award(key,xp,attr,label,src,date=today()){
+  let e=state.ledger.find(l=>l.key===key);
+  if(e){if(e.voided)e.voided=false;return e}      // never a second entry for the same key
+  e={id:uid(),key,ts:Date.now(),date,xp,attr:attr||'',label,src,voided:false};state.ledger.push(e);return e;
+}
+function audit(text){state.audit.unshift({ts:Date.now(),text});state.audit.length=Math.min(state.audit.length,300)}
+function markActive(date){
+  if(state.lastActive&&diffDays(date,state.lastActive)>=3)state.flags.comeback=true;
+  if(!state.lastActive||date>state.lastActive)state.lastActive=date;
+}
+
+/* ============ quests ============ */
+const periodKey=(q,d=today())=>q.type==='daily'?d:q.type==='weekly'?weekStart(d):'once';
+const completionFor=(q,key)=>state.completions.find(c=>c.questId===q.id&&c.periodKey===key);
+const isDone=q=>{const c=completionFor(q,periodKey(q));return !!c&&!c.voided};
+function toggleQuest(id){
+  const q=state.quests.find(x=>x.id===id);if(!q||q.status==='paused')return;
+  const key=periodKey(q),c=completionFor(q,key),k=`quest:${q.id}:${key}`;
+  if(c&&!c.voided){ // undo
+    c.voided=true;const e=state.ledger.find(l=>l.key===k);if(e)e.voided=true;
+    audit(`Undid completion: ${q.title}`);commit();toast('Completion undone. XP removed.','info');return;
+  }
+  if(c){c.voided=false}else{
+    state.completions.push({id:uid(),questId:q.id,title:q.title,type:q.type,periodKey:key,date:today(),ts:Date.now(),xp:q.xp,attr:q.attr,voided:false});
+  }
+  const comp=completionFor(q,key);
+  award(k,comp.xp,comp.attr,`Quest: ${comp.title}`,'quest');
+  markActive(today());
+  commit();toast(`+${comp.xp} XP · ${q.title}`,'xp');
+}
+function seedStarter(){
+  const mk=(title,type,difficulty,attr,notes='')=>({id:uid(),title,type,difficulty,xp:DIFF[difficulty].xp,attr,notes,deadline:'',status:'active',createdAt:today(),progress:0});
+  state.quests.push(mk('Study session (30 min)','daily','normal','INT'),mk('Gentle movement (15 min, any pace)','daily','normal','STR'),mk('Plan tomorrow (5 min)','daily','easy','DIS'),mk('Message a friend or family member','daily','easy','SOC'),
+    mk('Three movement sessions this week','weekly','hard','END','Walks count. Rest days are part of the plan.'),mk('Finish a course or personal project','long','epic','INT'));
+  state.habits.push({id:uid(),name:'Drink water',attr:'DIS',xp:5,status:'active'},{id:uid(),name:'Read 10 pages',attr:'INT',xp:5,status:'active'});
+}
+
+/* ============ activities ============ */
+function recalcActivities(){
+  const used={},byKey=new Map(state.ledger.map(l=>[l.key,l]));
+  state.activities.filter(a=>!a.voided).sort((a,b)=>a.date.localeCompare(b.date)||a.ts-b.ts).forEach(a=>{
+    const g=a.date+'|'+a.kind,u=used[g]||0,counted=Math.max(0,Math.min(a.minutes,KINDS[a.kind].cap-u));
+    used[g]=u+counted;a.xp=Math.floor(counted/3);a.capped=counted<a.minutes;
+  });
+  state.activities.forEach(a=>{
+    const key='act:'+a.id;let e=byKey.get(key);
+    if(!e){e={id:uid(),key,ts:a.ts,date:a.date,xp:a.xp||0,attr:KINDS[a.kind].attr,label:'',src:'activity',voided:false};state.ledger.push(e);byKey.set(key,e)}
+    if(!a.voided)e.xp=a.xp||0;
+    e.voided=!!a.voided;e.date=a.date;e.label=`${KINDS[a.kind].label}: ${a.minutes} min${a.distance?` · ${a.distance} km`:''}`;
+  });
+}
+function addActivity(o){
+  const a={id:uid(),kind:o.kind,minutes:o.minutes,distance:o.distance||0,date:o.date,note:o.note||'',ts:Date.now(),xp:0,voided:false};
+  state.activities.push(a);markActive(a.date);commit();
+  toast(a.xp?`+${a.xp} XP · ${KINDS[a.kind].label} ${a.minutes} min`:'Session logged.','xp');
+  if(a.capped)toast('Daily XP cap reached for this activity. Recovery matters too.','warn');
+  if(a.minutes>150&&(a.kind==='workout'||a.kind==='running'))toast('Long session. Hydrate, eat well and rest.','warn');
+}
+
+/* ============ metrics ============ */
+const inR=(d,f,t)=>d>=f&&d<=t;
+function sumRange(m,f,t){
+  const act=(k,fld)=>state.activities.reduce((s,a)=>s+(!a.voided&&a.kind===k&&inR(a.date,f,t)?(fld?a[fld]||0:1):0),0);
+  switch(m){
+    case 'xp':return state.ledger.reduce((s,e)=>s+(!e.voided&&inR(e.date,f,t)?e.xp:0),0);
+    case 'studyMin':return act('study','minutes');
+    case 'skillMin':return act('skill','minutes');
+    case 'workoutMin':return act('workout','minutes')+act('running','minutes');
+    case 'workoutCount':return act('workout');
+    case 'runKm':return Math.round(act('running','distance')*10)/10;
+    case 'questsDone':return state.completions.filter(c=>!c.voided&&inR(c.date,f,t)).length;
+    case 'habitChecks':return state.habitLogs.filter(h=>!h.voided&&inR(h.date,f,t)).length;
+    case 'activeDays':return activeDaySet(f,t).size;
+  }return 0;
+}
+function activeDaySet(f='0000-00-00',t='9999-99-99'){
+  const s=new Set();
+  state.completions.forEach(c=>!c.voided&&inR(c.date,f,t)&&s.add(c.date));
+  state.habitLogs.forEach(h=>!h.voided&&inR(h.date,f,t)&&s.add(h.date));
+  state.activities.forEach(a=>!a.voided&&inR(a.date,f,t)&&s.add(a.date));
+  return s;
+}
+/* streaks: a single missed day is forgiven; two missed days in a row end it; rest days bridge gaps */
+function streaks(doneSet){
+  const rest=new Set(state.restDays),days=[...doneSet].sort();if(!days.length)return{cur:0,best:0};
+  const min=days[0],t=today();let best=0,run=0,miss=0;
+  for(let d=min;d<=t;d=addDays(d,1)){
+    if(doneSet.has(d)){run++;miss=0;best=Math.max(best,run)}
+    else if(rest.has(d)){/* bridge */}
+    else if(d!==t){miss++;if(miss>=2){run=0}}
+  }
+  // current: walk back from today (today may still be open)
+  let cur=0;miss=0;let d=doneSet.has(t)?t:addDays(t,-1);
+  for(;d>=min;d=addDays(d,-1)){
+    if(doneSet.has(d)){cur++;miss=0}else if(rest.has(d)){miss=0}else{miss++;if(miss>=2)break}
+  }
+  return{cur,best:Math.max(best,cur)};
+}
+const habitDoneSet=id=>new Set(state.habitLogs.filter(h=>h.habitId===id&&!h.voided).map(h=>h.date));
+function toggleHabit(id,date){
+  const h=state.habits.find(x=>x.id===id);if(!h||h.status==='paused'||date>today()||!validDate(date))return;
+  const k=`habit:${id}:${date}`;let log=state.habitLogs.find(l=>l.habitId===id&&l.date===date);
+  if(log&&!log.voided){log.voided=true;const e=state.ledger.find(l=>l.key===k);if(e)e.voided=true;commit();return}
+  if(log)log.voided=false;else state.habitLogs.push(log={id:uid(),habitId:id,habit:h.name,date,ts:Date.now(),voided:false});
+  award(k,h.xp,h.attr,`Habit: ${h.name}`,'habit',date);markActive(date);commit();toast(`+${h.xp} XP · ${h.name}`,'xp');
+}
+function toggleRest(date){
+  const i=state.restDays.indexOf(date);
+  if(i>=0){state.restDays.splice(i,1)}else{state.restDays.push(date);toast('Rest day logged. Your streaks are protected. No penalties.','info')}
+  commit();
+}
+
+/* ============ bosses ============ */
+const critValue=(b,c)=>c.metric==='manual'?num(c.progress):sumRange(c.metric,b.weekKey,weekEnd(b.weekKey));
+function bossProgress(b){
+  const rows=b.criteria.map(c=>({label:c.metric==='manual'?(c.label||'Custom'):CRIT[c.metric],v:critValue(b,c),target:c.target,metric:c.metric}));
+  const pct=rows.length?Math.round(rows.reduce((s,r)=>s+Math.min(1,r.v/r.target),0)/rows.length*100):0;
+  return{rows,pct,done:rows.length>0&&rows.every(r=>r.v>=r.target)};
+}
+function evaluateBosses(){
+  const t=today();
+  state.bosses.forEach(b=>{
+    if(b.status==='active'){
+      const p=bossProgress(b);
+      if(b.weekKey<=t&&p.done){b.status='completed';b.completedAt=Date.now();b.result=p;award(`boss:${b.id}`,b.bonusXP,'DIS',`Boss cleared: ${b.title}`,'boss');notifyLater(`Boss cleared: ${b.title} · +${b.bonusXP} XP`,'level')}
+      else if(t>weekEnd(b.weekKey)){b.status='ended';b.result=p}
+    }else if(b.status==='paused'&&t>weekEnd(b.weekKey)){b.status='skipped'}
+  });
+}
+const pending=[];const notifyLater=(m,t)=>pending.push([m,t]);
+
+/* ============ achievements ============ */
+const ACH=[
+  ['first_quest','First Steps','Complete your first quest',20,s=>s.quests>=1],
+  ['quests_10','Getting Rolling','Complete 10 quests',40,s=>s.quests>=10],
+  ['quests_50','Quest Regular','Complete 50 quests',100,s=>s.quests>=50],
+  ['quests_100','Centurion','Complete 100 quests',200,s=>s.quests>=100],
+  ['lvl_5','Level 5','Reach level 5',50,s=>s.level>=5],
+  ['lvl_10','Level 10','Reach level 10 (D-Rank)',100,s=>s.level>=10],
+  ['lvl_25','Level 25','Reach level 25 (C-Rank)',250,s=>s.level>=25],
+  ['study_10h','Scholar','Log 10 hours of study',60,s=>s.study>=600],
+  ['study_50h','Sage','Log 50 hours of study',200,s=>s.study>=3000],
+  ['skill_10h','Craftsman','Log 10 hours of skill practice',60,s=>s.skill>=600],
+  ['workout_10','Iron Will','Log 10 workouts',60,s=>s.workouts>=10],
+  ['run_25','Road Runner','Run 25 km in total',60,s=>s.runKm>=25],
+  ['habit_first','Habit Formed','Check in a habit for the first time',15,s=>s.habitChecks>=1],
+  ['streak_7','Seven Strong','Reach a 7-day streak',80,s=>s.streak>=7],
+  ['streak_30','Unbroken','Reach a 30-day streak',300,s=>s.streak>=30],
+  ['boss_1','Boss Slayer','Clear a weekly boss',80,s=>s.bosses>=1],
+  ['boss_5','Raid Leader','Clear 5 weekly bosses',250,s=>s.bosses>=5],
+  ['rest','Wise Hunter','Log a rest day. Recovery is training',15,s=>s.rest>=1],
+  ['comeback','Return of the Hunter','Log progress after 3+ days away',30,s=>!!s.comeback],
+  ['perfect','Full Clear','Finish every daily quest in a day (3+ quests)',50,s=>s.perfect],
+];
+function computeStats(){
+  const act=state.activities.filter(a=>!a.voided);
+  const sum=(k,f)=>act.filter(a=>a.kind===k).reduce((s,a)=>s+(f?a[f]||0:1),0);
+  const dailies=state.quests.filter(q=>q.type==='daily'&&q.status==='active');
+  let best=streaks(activeDaySet()).best;state.habits.forEach(h=>best=Math.max(best,streaks(habitDoneSet(h.id)).best));
+  return{quests:state.completions.filter(c=>!c.voided).length,level:levelInfo(totalXP()).level,study:sum('study','minutes'),skill:sum('skill','minutes'),
+    workouts:sum('workout'),runKm:sum('running','distance'),bosses:state.bosses.filter(b=>b.status==='completed').length,habitChecks:state.habitLogs.filter(h=>!h.voided).length,
+    streak:best,rest:state.restDays.length,comeback:state.flags.comeback,perfect:dailies.length>=3&&dailies.every(isDone)};
+}
+function evaluateAchievements(){
+  for(let i=0;i<10;i++){
+    const s=computeStats();let changed=false;
+    for(const [id,name,desc,xp,test] of ACH){
+      if(!state.achievements[id]&&test(s)){state.achievements[id]=Date.now();award('ach:'+id,xp,'',`Achievement: ${name}`,'achievement');notifyLater(`Achievement unlocked: ${name} (+${xp} XP)`,'ach');changed=true}
+    }
+    if(!changed)break;
+  }
+}
+
+/* ============ commit pipeline ============ */
+function commit(){
+  recalcActivities();evaluateBosses();evaluateAchievements();
+  const info=levelInfo(totalXP());
+  const up=info.level>state.lastLevel,from=state.lastLevel;
+  state.lastLevel=info.level;
+  save();render();
+  pending.splice(0).forEach(([m,t])=>toast(m,t));
+  if(up)showLevelUp(from,info.level);
+}
+function toast(msg,type='info'){
+  const el=document.createElement('div');el.className='toast '+type;el.textContent=msg;$('#toasts').appendChild(el);
+  while($('#toasts').children.length>4)$('#toasts').firstChild.remove();
+  setTimeout(()=>el.remove(),3800);
+}
+function showLevelUp(from,to){
+  const a=rankOf(from),b=rankOf(to);
+  openModal(`<div class="lvl"><h3>Level up</h3><div class="big">${to}</div><p class="sub">${esc(state.player.name)} · ${b.r}-Rank ${b.t}</p>${a.r!==b.r?`<p style="color:var(--good)">New rank reached: ${b.r}-Rank</p>`:''}<p class="hint">Consistency got you here. Keep it steady, not perfect.</p><div class="btnrow" style="justify-content:center"><button class="btn primary" data-act="closeModal">Continue</button></div></div>`);
+}
+
+/* ============ modal ============ */
+function openModal(html,onMount){
+  closeModal();const m=document.createElement('div');m.className='overlay';m.id='modal';
+  m.innerHTML=`<div class="dialog" role="dialog" aria-modal="true">${html}</div>`;
+  m.addEventListener('mousedown',e=>{if(e.target===m)closeModal()});
+  document.body.appendChild(m);if(onMount)onMount(m);
+}
+const closeModal=()=>{const m=$('#modal');if(m)m.remove()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+function confirmDlg(title,msg,okLabel,fn,danger=true){
+  openModal(`<h3>${esc(title)}</h3><p class="sub">${msg}</p><div class="btnrow"><button class="btn ghost" data-act="closeModal">Cancel</button><button class="btn ${danger?'danger':'primary'}" id="cfmOk">${esc(okLabel)}</button></div>`,m=>{$('#cfmOk',m).onclick=()=>{closeModal();fn()}});
+}
+
+/* ============ charts ============ */
+let chartN=0;
+function barChart(data,unit=''){
+  const W=340,H=170,pl=34,pr=6,pt=16,pb=24,n=data.length,id='g'+(++chartN);
+  const max=Math.max(1,...data.map(d=>d.v));const nice=(()=>{const p=10**Math.floor(Math.log10(max));const m=max/p;return(m<=1?1:m<=2?2:m<=5?5:10)*p})();
+  const bw=(W-pl-pr)/n,y=v=>pt+(H-pt-pb)*(1-v/nice);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Chart"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#35b0ff"/><stop offset="1" stop-color="#9b6bff"/></linearGradient></defs>`;
+  [0,.5,1].forEach(f=>{const v=nice*f;s+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="#22305a" stroke-width="1" fill="none"/><text x="${pl-4}" y="${y(v)+3}" font-size="9" text-anchor="end">${Math.round(v*10)/10}</text>`});
+  const step=Math.ceil(n/7);
+  data.forEach((d,i)=>{
+    const x=pl+i*bw+bw*.18,h=Math.max(0,(H-pt-pb)*d.v/nice);
+    if(d.v>0)s+=`<rect x="${x}" y="${y(d.v)}" width="${bw*.64}" height="${h}" rx="2" fill="url(#${id})"><title>${esc(d.label)}: ${d.v} ${unit}</title></rect>`;
+    else s+=`<rect x="${x}" y="${H-pb-1.5}" width="${bw*.64}" height="1.5" fill="#22305a"/>`;
+    if(n<=14&&d.v>0)s+=`<text x="${x+bw*.32}" y="${y(d.v)-3}" font-size="9" text-anchor="middle">${Math.round(d.v*10)/10}</text>`;
+    if(i%step===0||i===n-1)s+=`<text x="${x+bw*.32}" y="${H-8}" font-size="9" text-anchor="middle">${esc(d.label)}</text>`;
+  });
+  return s+'</svg>';
+}
+function radar(){
+  const keys=Object.keys(ATTRS),S=240,c=S/2,R=82,lv=keys.map(k=>attrInfo(k).lv),maxL=Math.max(10,...lv);
+  const pt=(i,f)=>{const a=-Math.PI/2+i*2*Math.PI/5;return[c+Math.cos(a)*R*f,c+Math.sin(a)*R*f]};
+  let s=`<svg viewBox="0 0 ${S} ${S}" role="img" aria-label="Attribute radar">`;
+  [.25,.5,.75,1].forEach(f=>s+=`<polygon points="${keys.map((_,i)=>pt(i,f).join(',')).join(' ')}" fill="none" stroke="#22305a"/>`);
+  keys.forEach((k,i)=>{const[x,y]=pt(i,1);s+=`<line x1="${c}" y1="${c}" x2="${x}" y2="${y}" stroke="#22305a" fill="none"/>`;const[lx,ly]=pt(i,1.28);s+=`<text x="${lx}" y="${ly+3}" font-size="10" text-anchor="middle">${k}</text>`});
+  s+=`<polygon points="${keys.map((_,i)=>pt(i,Math.max(.06,lv[i]/maxL)).join(',')).join(' ')}" fill="rgba(155,107,255,.28)" stroke="#35b0ff" stroke-width="2"/>`;
+  return s+'</svg>';
+}
+function series(metric,range){
+  const t=today(),out=[];
+  if(range==='8w'){const w0=weekStart(t);for(let i=7;i>=0;i--){const w=addDays(w0,-7*i);out.push({label:shortDate(w),v:sumRange(metric,w,weekEnd(w))})}}
+  else{const n=Number(range);for(let i=n-1;i>=0;i--){const d=addDays(t,-i);out.push({label:n<=7?['Su','Mo','Tu','We','Th','Fr','Sa'][parseDate(d).getDay()]:shortDate(d),v:sumRange(metric,d,d)})}}
+  return out;
+}
+
+/* ============ views ============ */
+const chip=(t,c='')=>`<span class="chip ${c}">${esc(t)}</span>`;
+function questRow(q,{compact=false}={}){
+  const done=isDone(q),paused=q.status==='paused',d=DIFF[q.difficulty]||DIFF.normal;
+  const reset=q.type==='daily'?'Resets daily':q.type==='weekly'?'Resets Monday':(q.deadline?`Target ${shortDate(q.deadline)}`:'One-time');
+  return `<div class="qrow ${done?'done':''} ${paused?'paused':''}" data-q="${q.id}">
+    <button class="chk" data-act="toggleQuest" data-id="${q.id}" aria-label="${done?'Undo':'Complete'}: ${esc(q.title)}" ${paused?'disabled':''}>${done?'✓':''}</button>
+    <div style="min-width:0"><div class="qtitle">${esc(q.title)}</div>
+      <div class="qmeta">${chip(d.label,d.c)}${chip(q.attr)}<span>${reset}</span>${paused?chip('Paused'):''}</div>
+      ${q.type==='long'&&!compact?`<input type="range" min="0" max="100" step="5" value="${done?100:num(q.progress)}" data-change="progress" data-id="${q.id}" aria-label="Progress"><div class="sub">Progress: ${done?100:num(q.progress)}%</div>`:''}
+      ${q.notes&&!compact?`<div class="sub">${esc(q.notes)}</div>`:''}</div>
+    <div class="qxp">+${q.xp}</div>
+    ${compact?'':`<div class="qacts"><button class="btn sm ghost" data-act="editQuest" data-id="${q.id}">Edit</button><button class="btn sm ghost" data-act="pauseQuest" data-id="${q.id}">${paused?'Resume':'Pause'}</button><button class="btn sm danger" data-act="deleteQuest" data-id="${q.id}">Delete</button></div>`}
+  </div>`;
+}
+const activeQuests=()=>state.quests.filter(q=>q.status==='active');
+
+function viewStatus(){
+  const info=levelInfo(totalXP()),rk=rankOf(info.level),t=today(),w0=weekStart(t),w1=weekEnd(w0);
+  const pct=Math.round(info.into/info.need*100),gs=streaks(activeDaySet());
+  const open=activeQuests().filter(q=>!isDone(q)),
+        recent=state.completions.filter(c=>!c.voided).sort((a,b)=>b.ts-a.ts).slice(0,6);
+  const ach=Object.entries(state.achievements).sort((a,b)=>b[1]-a[1]).slice(0,4);
+  const upBoss=state.bosses.filter(b=>(b.status==='active'||b.status==='paused')&&weekEnd(b.weekKey)>=t).sort((a,b)=>a.weekKey.localeCompare(b.weekKey));
+  const deadlines=state.quests.filter(q=>q.type==='long'&&q.status==='active'&&q.deadline&&!isDone(q)).sort((a,b)=>a.deadline.localeCompare(b.deadline)).slice(0,3);
+  const wk=series('xp','7');
+  const wkDays=[];for(let i=0;i<7;i++){const d=addDays(w0,i);wkDays.push({label:['Mo','Tu','We','Th','Fr','Sa','Su'][i],v:sumRange('xp',d,d)})}
+  return `<div class="grid two">
+  <section class="panel col2"><div class="hero"><div class="badge" aria-label="Rank ${rk.r}">${rk.r}</div><div style="min-width:0">
+    <input class="name-input" id="nameInput" maxlength="24" value="${esc(state.player.name)}" data-change="rename" aria-label="Player name">
+    <div class="sub">LEVEL ${info.level} · ${rk.r}-RANK ${rk.t.toUpperCase()}</div></div></div>
+    <div class="xprow"><span>XP ${info.into} / ${info.need}</span><span>${info.need-info.into} to level ${info.level+1}</span></div>
+    <div class="bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><span style="width:${pct}%"></span></div>
+    <div class="stats"><div class="stat"><b>${totalXP()}</b><span>Total XP</span></div><div class="stat"><b>${state.completions.filter(c=>!c.voided).length}</b><span>Quests done</span></div>
+    <div class="stat"><b>${gs.cur}d</b><span>Active streak</span></div><div class="stat"><b>${Object.keys(state.achievements).length}/${ACH.length}</b><span>Achievements</span></div></div>
+  </section>
+  <section class="panel"><h2>Attributes</h2><div style="max-width:240px;margin:0 auto" class="chartwrap">${radar()}</div>
+    ${Object.keys(ATTRS).map(k=>{const a=attrInfo(k);return `<div class="attr"><span>${ATTRS[k]}</span><div class="bar sm"><span style="width:${a.pct}%"></span></div><b>${a.lv}</b></div>`}).join('')}</section>
+  <section class="panel"><h2>Active quests <small>${open.length} open</small></h2>
+    ${open.length?open.slice(0,7).map(q=>questRow(q,{compact:true})).join('')+(open.length>7?`<button class="btn sm ghost" data-act="nav" data-view="quests">View all ${open.length}</button>`:''):`<div class="empty">${activeQuests().length?'Everything is cleared for now. Nice work.':'No active quests yet. Create one in the Quests tab.'}</div>`}
+    <div class="btnrow"><button class="btn sm" data-act="nav" data-view="quests">Open quest board</button></div></section>
+  <section class="panel"><h2>Weekly performance <small>${shortDate(w0)} – ${shortDate(w1)}</small></h2>
+    <div class="sumgrid"><div class="stat"><b>${sumRange('xp',w0,w1)}</b><span>XP</span></div><div class="stat"><b>${sumRange('questsDone',w0,w1)}</b><span>Quests</span></div><div class="stat"><b>${Math.round(sumRange('studyMin',w0,w1)/6)/10}h</b><span>Study</span></div>
+    <div class="stat"><b>${sumRange('workoutCount',w0,w1)}</b><span>Workouts</span></div><div class="stat"><b>${sumRange('runKm',w0,w1)}</b><span>Run km</span></div><div class="stat"><b>${sumRange('activeDays',w0,w1)}/7</b><span>Active days</span></div></div>
+    <div class="chartwrap" style="margin-top:10px">${barChart(wkDays,'XP')}</div></section>
+  <section class="panel"><h2>Recently completed</h2>${recent.length?recent.map(c=>`<div class="row"><div>${esc(c.title)}<div class="sub">${shortDate(c.date)}</div></div><span class="pos">+${c.xp}</span></div>`).join(''):'<div class="empty">Nothing completed yet. Your first quest is one tap away.</div>'}</section>
+  <section class="panel"><h2>Recent achievements <small>${Object.keys(state.achievements).length}/${ACH.length}</small></h2>
+    ${ach.length?ach.map(([id])=>{const a=ACH.find(x=>x[0]===id);return `<div class="acc"><div class="g">★</div><div><b>${esc(a[1])}</b><div class="sub">${esc(a[2])}</div></div></div>`}).join(''):'<div class="empty">No achievements yet.</div>'}
+    <div class="btnrow"><button class="btn sm ghost" data-act="allAch">View all</button></div></section>
+  <section class="panel col2"><h2>Upcoming challenges</h2>
+    ${upBoss.map(b=>{const p=bossProgress(b);return `<div class="row"><div><b>${esc(b.title)}</b><div class="sub">${b.weekKey<=t?'This week':'Starts '+shortDate(b.weekKey)} · ${b.status==='paused'?'paused':p.pct+'%'} · +${b.bonusXP} XP</div></div><button class="btn sm" data-act="nav" data-view="boss">Open</button></div>`}).join('')||'<div class="empty">No boss planned. Set a weekly challenge in the Boss tab.</div>'}
+    ${deadlines.map(q=>`<div class="row"><div>${esc(q.title)}<div class="sub">Target date ${shortDate(q.deadline)}</div></div><span class="qxp">+${q.xp}</span></div>`).join('')}
+    <div class="row"><div>Weekly quests reset<div class="sub">Monday ${shortDate(addDays(w0,7))}. Progress history is kept.</div></div></div></section>
+  </div>`;
+}
+
+function viewQuests(){
+  const tab=ui.questTab,tabs=[['daily','Daily'],['weekly','Weekly'],['long','Long-term'],['paused','Paused'],['history','History']];
+  const cnt=ty=>{const l=state.quests.filter(q=>q.type===ty&&q.status==='active');return `${l.filter(isDone).length}/${l.length}`};
+  let body='';
+  if(tab==='history'){
+    const list=[...state.completions].sort((a,b)=>b.ts-a.ts).slice(0,200);let last='';
+    body=list.length?list.map(c=>{const h=c.date!==last?`<div class="sub" style="margin-top:10px">${parseDate(c.date).toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})}</div>`:'';last=c.date;
+      return h+`<div class="row ${c.voided?'void':''}"><div>${esc(c.title)} <span class="chip">${c.type}</span></div><span class="pos">+${c.xp}</span></div>`}).join(''):'<div class="empty">No history yet.</div>';
+  }else{
+    let l=tab==='paused'?state.quests.filter(q=>q.status==='paused'):state.quests.filter(q=>q.type===tab&&q.status==='active');
+    l=[...l].sort((a,b)=>isDone(a)-isDone(b));
+    body=l.length?l.map(q=>questRow(q)).join(''):`<div class="empty">${tab==='paused'?'No paused quests. Pause anything that does not fit this season of life.':'No quests here yet.'}</div>${state.quests.length===0?'<button class="btn sm" data-act="starter">Add starter quests</button>':''}`;
+  }
+  return `<section class="panel"><h2>Quest board <button class="btn sm primary" data-act="newQuest">+ New quest</button></h2>
+  <div class="seg">${tabs.map(([k,l])=>`<button class="${tab===k?'on':''}" data-act="questTab" data-tab="${k}">${l}${['daily','weekly','long'].includes(k)?' '+cnt(k):''}</button>`).join('')}</div>
+  ${body}<p class="hint">XP is awarded once per quest per period (day for daily, Monday-based week for weekly). Missed quests cost nothing.</p></section>`;
+}
+
+function viewTrack(){
+  const t=today(),w0=weekStart(t),w1=weekEnd(w0);
+  const sumCard=(f,to)=>`<div class="sumgrid"><div class="stat"><b>${sumRange('xp',f,to)}</b><span>XP</span></div><div class="stat"><b>${sumRange('studyMin',f,to)}m</b><span>Study</span></div><div class="stat"><b>${sumRange('skillMin',f,to)}m</b><span>Skill</span></div>
+    <div class="stat"><b>${sumRange('workoutCount',f,to)}</b><span>Workouts</span></div><div class="stat"><b>${sumRange('runKm',f,to)}</b><span>Run km</span></div><div class="stat"><b>${sumRange('habitChecks',f,to)}</b><span>Habits</span></div></div>`;
+  const days=[];for(let i=6;i>=0;i--)days.push(addDays(t,-i));
+  const tm=state.timer;
+  const chartData=series(ui.metric,ui.range);
+  return `<div class="grid two">
+  <section class="panel"><h2>Today</h2>${sumCard(t,t)}<div class="btnrow"><button class="btn sm ${state.restDays.includes(t)?'primary':''}" data-act="restToday" aria-pressed="${state.restDays.includes(t)}">${state.restDays.includes(t)?'Rest day logged ✓':'Mark today as rest day'}</button></div><p class="hint">Rest, illness and recovery days protect your streaks. Nothing is lost.</p></section>
+  <section class="panel"><h2>This week <small>${shortDate(w0)} – ${shortDate(w1)}</small></h2>${sumCard(w0,w1)}<div class="sub" style="margin-top:8px">Active days: ${sumRange('activeDays',w0,w1)} · Rest days: ${state.restDays.filter(d=>inR(d,w0,w1)).length}</div></section>
+  <section class="panel"><h2>Log a session</h2>
+    <form id="actForm" autocomplete="off">
+    <div class="grid2"><label>Type<select id="af_kind" name="kind">${opts(KINDS,'study')}</select></label><label>Minutes<input id="af_min" name="minutes" type="number" min="1" max="600" inputmode="numeric" required></label></div>
+    <div class="grid2"><label id="af_distwrap" hidden>Distance km (optional)<input id="af_dist" name="distance" type="number" min="0" max="100" step="0.1" inputmode="decimal"></label><label>Date<input id="af_date" name="date" type="date" max="${t}" value="${t}" required></label></div>
+    <label>Note<input id="af_note" name="note" maxlength="120"></label>
+    <div class="btnrow"><button class="btn primary" type="submit">Log session</button></div></form>
+    <p class="hint">XP: 1 per 3 minutes, capped per day per activity type (study 240, skill 180, workout 90, running 90, social 120 min). Listen to your body; more is not better.</p>
+    <h2 style="margin-top:16px;font-size:13px">Study timer</h2>
+    ${tm?`<div class="timer" id="timerClock">00:00</div><div class="btnrow"><button class="btn primary" data-act="timerStop">Stop &amp; fill form</button><button class="btn ghost" data-act="timerCancel">Cancel</button></div>`:`<div class="btnrow"><button class="btn" data-act="timerStart">Start study timer</button></div>`}
+  </section>
+  <section class="panel"><h2>Habits <button class="btn sm primary" data-act="newHabit">+ Habit</button></h2>
+    ${state.habits.length?state.habits.map(h=>{const st=streaks(habitDoneSet(h.id)),ds=habitDoneSet(h.id),paused=h.status==='paused';
+      return `<div class="habit"><div style="min-width:0"><b>${esc(h.name)}</b> ${chip(h.attr)}${paused?chip('Paused'):''}<div class="sub">Streak ${st.cur} · best ${st.best} · +${h.xp} XP</div></div>
+      <div class="btnrow" style="margin:0"><button class="btn sm ghost" data-act="editHabit" data-id="${h.id}">Edit</button></div>
+      <div class="hdays" style="grid-column:1/-1">${days.map(d=>`<button class="hcell ${ds.has(d)?'on':''} ${state.restDays.includes(d)&&!ds.has(d)?'rest':''} ${d===t?'today':''}" data-act="habitCell" data-id="${h.id}" data-date="${d}" ${paused?'disabled':''} aria-label="${esc(h.name)} ${d}" aria-pressed="${ds.has(d)}"><span>${dowLetter(d)}</span><span>${ds.has(d)?'✓':state.restDays.includes(d)?'R':'·'}</span></button>`).join('')}</div></div>`}).join(''):'<div class="empty">No habits yet.</div>'}
+    <p class="hint">A single missed day never breaks a streak. Two in a row does, unless one is a rest day. Tap past days to correct them.</p></section>
+  <section class="panel col2"><h2>Progress charts</h2>
+    <div class="grid2"><label>Metric<select id="chartMetric" data-change="metric">${opts(METRICS,ui.metric)}</select></label>
+    <label>Range<select id="chartRange" data-change="range"><option value="7"${ui.range==='7'?' selected':''}>Last 7 days</option><option value="14"${ui.range==='14'?' selected':''}>Last 14 days</option><option value="30"${ui.range==='30'?' selected':''}>Last 30 days</option><option value="8w"${ui.range==='8w'?' selected':''}>Last 8 weeks</option></select></label></div>
+    <div class="chartwrap" style="margin-top:10px;max-width:640px" id="chartBox">${barChart(chartData,'')}</div>
+    <div class="sub">Total in range: ${Math.round(chartData.reduce((s,d)=>s+d.v,0)*10)/10}</div></section>
+  </div>`;
+}
+
+function bossCard(b){
+  const t=today(),live=(b.status==='active'||b.status==='paused')?bossProgress(b):(b.result||bossProgress(b));
+  const stateLbl={active:b.weekKey>t?'Upcoming':'In progress',paused:'Paused (rest week)',completed:'Cleared',ended:'Ended',skipped:'Skipped'}[b.status];
+  const edit=b.status==='active'||b.status==='paused';
+  return `<div class="panel" style="margin-bottom:14px"><h2>${esc(b.title)} <small>${stateLbl}</small></h2>
+  <div class="sub">Week ${shortDate(b.weekKey)} – ${shortDate(weekEnd(b.weekKey))} · ${DIFF[b.difficulty].label} · bonus +${b.bonusXP} XP</div>
+  ${live.rows.map((r,i)=>`<div style="margin-top:10px"><div class="xprow" style="margin:0 0 4px"><span>${esc(r.label)}</span><span>${Math.round(r.v*10)/10} / ${r.target}</span></div><div class="bar sm"><span style="width:${Math.min(100,r.v/r.target*100)}%"></span></div>
+   ${edit&&r.metric==='manual'?`<div class="btnrow" style="margin-top:6px"><button class="btn sm" data-act="manualInc" data-id="${b.id}" data-i="${i}" data-d="-1" aria-label="Decrease">−</button><button class="btn sm" data-act="manualInc" data-id="${b.id}" data-i="${i}" data-d="1" aria-label="Increase">+</button></div>`:''}</div>`).join('')}
+  ${b.notes?`<p class="hint">${esc(b.notes)}</p>`:''}
+  ${edit?`<div class="btnrow"><button class="btn sm ghost" data-act="editBoss" data-id="${b.id}">Edit / adjust</button><button class="btn sm ghost" data-act="pauseBoss" data-id="${b.id}">${b.status==='paused'?'Resume':'Pause (rest week)'}</button><button class="btn sm danger" data-act="deleteBoss" data-id="${b.id}">Delete</button></div>`:''}
+  ${(b.status==='completed'||b.status==='ended'||b.status==='skipped')?reviewBlock(b):''}</div>`;
+}
+function reviewBlock(b){
+  const r=b.review,sug={easy:'Next week: targets +15%',right:'Next week: same targets',hard:'Next week: targets −20%'};
+  return `<h2 style="margin-top:14px;font-size:13px">Review</h2>${b.status==='ended'?'<p class="hint">Not cleared this time. No penalty. Use the review to set a realistic next challenge.</p>':''}
+  <div class="seg">${[['easy','Too easy'],['right','Just right'],['hard','Too hard']].map(([k,l])=>`<button class="${r&&r.rating===k?'on':''}" data-act="rate" data-id="${b.id}" data-r="${k}">${l}</button>`).join('')}</div>
+  ${r?`<div class="sub">${sug[r.rating]}</div>`:''}
+  <label>Notes<textarea data-change="reviewNote" data-id="${b.id}" maxlength="400" placeholder="What worked? What got in the way?">${esc(r?r.note:'')}</textarea></label>
+  <div class="btnrow"><button class="btn sm primary" data-act="planNext" data-id="${b.id}">Plan next week from this</button></div>`;
+}
+function viewBoss(){
+  const t=today(),w0=weekStart(t);
+  const cur=state.bosses.filter(b=>(b.status==='active'||b.status==='paused')&&b.weekKey<=t),up=state.bosses.filter(b=>b.status==='active'&&b.weekKey>t),past=state.bosses.filter(b=>['completed','ended','skipped'].includes(b.status)).sort((a,b)=>b.weekKey.localeCompare(a.weekKey));
+  return `<section class="panel" style="margin-bottom:14px"><h2>Boss battles <button class="btn sm primary" data-act="newBoss">+ Weekly challenge</button></h2>
+  <p class="hint" style="margin:0">A boss is a weekly challenge with measurable goals. Progress is tracked automatically from your logs. Clearing every goal awards bonus XP once. Plan at least one rest day per week.</p></section>
+  ${cur.length?cur.map(bossCard).join(''):`<div class="panel" style="margin-bottom:14px"><div class="empty">No boss this week (${shortDate(w0)}). Create one to get started.</div></div>`}
+  ${up.length?`<h2 style="margin:6px 0 10px;color:var(--muted);font-size:13px">Upcoming</h2>${up.map(bossCard).join('')}`:''}
+  ${past.length?`<h2 style="margin:6px 0 10px;color:var(--muted);font-size:13px">Past results</h2>${past.map(bossCard).join('')}`:''}`;
+}
+
+function viewLog(){
+  const tab=ui.logTab;let body='';
+  if(tab==='ledger'){
+    const l=[...state.ledger].sort((a,b)=>b.ts-a.ts).slice(0,150);
+    body=l.length?l.map(e=>`<div class="row ${e.voided?'void':''}"><div>${esc(e.label)}<div class="sub">${shortDate(e.date)} ${e.attr?'· '+e.attr:''}</div></div><div style="display:flex;gap:8px;align-items:center"><span class="${e.xp>=0?'pos':'neg'}">${e.xp>=0?'+':''}${e.xp}</span><button class="btn sm ghost" data-act="${e.voided?'restoreEntry':'voidEntry'}" data-id="${e.id}">${e.voided?'Restore':'Void'}</button></div></div>`).join(''):'<div class="empty">No XP events yet.</div>';
+  }else if(tab==='acts'){
+    const l=[...state.activities].sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts).slice(0,150);
+    body=l.length?l.map(a=>`<div class="row ${a.voided?'void':''}"><div>${KINDS[a.kind].label}: ${a.minutes} min${a.distance?` · ${a.distance} km`:''}<div class="sub">${shortDate(a.date)} · ${a.xp} XP${a.note?' · '+esc(a.note):''}</div></div><div style="display:flex;gap:6px"><button class="btn sm ghost" data-act="editAct" data-id="${a.id}">Edit</button><button class="btn sm ghost" data-act="${a.voided?'restoreAct':'voidAct'}" data-id="${a.id}">${a.voided?'Restore':'Void'}</button></div></div>`).join(''):'<div class="empty">No sessions logged yet.</div>';
+  }else{
+    body=state.audit.length?state.audit.map(a=>`<div class="row"><div>${esc(a.text)}<div class="sub">${new Date(a.ts).toLocaleString()}</div></div></div>`).join(''):'<div class="empty">No manual corrections yet.</div>';
+  }
+  return `<div class="grid two"><section class="panel col2"><h2>Activity log &amp; corrections</h2>
+  <div class="seg">${[['ledger','XP ledger'],['acts','Sessions'],['audit','Corrections']].map(([k,l])=>`<button class="${tab===k?'on':''}" data-act="logTab" data-tab="${k}">${l}</button>`).join('')}</div>${body}
+  <p class="hint">Voiding keeps the record but removes its XP. Restoring brings it back. Nothing is ever paid out twice.</p></section>
+  <section class="panel col2"><h2>Manual XP correction</h2><form id="adjForm" autocomplete="off"><div class="grid2"><label>XP (−500 to 500)<input id="adj_xp" type="number" min="-500" max="500" step="1" required></label><label>Attribute<select id="adj_attr"><option value="">None</option>${opts(ATTRS,'')}</select></label></div>
+  <label>Reason (required)<input id="adj_reason" maxlength="100" required></label><div class="btnrow"><button class="btn primary" type="submit">Apply correction</button></div></form></section></div>`;
+}
+
+function viewSystem(){
+  const lb=state.settings.lastBackup;
+  const hasPrev=(()=>{try{return !!localStorage.getItem(PREV)}catch(e){return false}})();
+  const rows=[1,2,3,5,10,20,35,50].map(L=>`<tr><td>${L}</td><td>${needFor(L)}</td><td>${100*(L-1)+20*(L-1)*(L-2)}</td></tr>`).join('');
+  return `<div class="grid two">
+  <section class="panel col2"><h2>Backup &amp; restore</h2>
+  <p class="sub" style="margin-top:0">Last backup: ${lb?new Date(lb).toLocaleString():'never'}</p>
+  <div class="btnrow"><button class="btn primary" data-act="exportDl">Download backup (.json)</button><button class="btn" data-act="exportShow">Show / copy backup text</button><button class="btn" data-act="importFile">Import from file</button><button class="btn" data-act="importPaste">Import from pasted text</button></div>
+  <input type="file" id="importInput" accept=".json,application/json" hidden>
+  ${hasPrev?`<div class="btnrow"><button class="btn sm ghost" data-act="restorePrev">Restore the safety copy from before the last import/reset</button></div>`:''}
+  <div id="exportBox"></div></section>
+  <section class="panel"><h2>Reset</h2><p class="sub" style="margin-top:0">Erase all progress and start over. A safety copy is kept in this browser until the next reset or import.</p><div class="btnrow"><button class="btn danger" data-act="reset">Reset everything…</button></div></section>
+  <section class="panel"><h2>Safety &amp; fairness</h2><div class="doc"><ul style="padding-left:18px;margin:0"><li>No XP is ever removed for missed quests, sleep, rest or illness.</li><li>Rest days protect streaks. One missed day never breaks one.</li><li>Pause any quest, habit or boss. Edit any goal that is unrealistic.</li><li>XP from activity is capped per day. Weekly boss goals have upper limits and always leave room for rest.</li><li>This app never suggests skipping meals or extreme training. If something hurts, stop and see a professional.</li></ul></div></section>
+  <section class="panel col2"><h2>How XP and levels work</h2><div class="doc">
+  <p>XP needed to go from level L to L+1: <code>100 + 40 × (L − 1)</code>. Total XP to reach level L: <code>100(L−1) + 20(L−1)(L−2)</code>. Level is always computed from your total XP, so it can never drift.</p>
+  <div style="overflow-x:auto"><table><tr><th>Level</th><th>XP to next</th><th>Total XP to reach</th></tr>${rows}</table></div>
+  <p>Ranks: E (1–9), D (10–19), C (20–34), B (35–49), A (50–74), S (75+).</p>
+  <p>Quest XP: Easy 10, Normal 25, Hard 50, Epic 100 (adjustable 1–500). Sessions: 1 XP per 3 minutes with daily caps. Habits: set per habit. Boss: bonus XP once on clearing. Achievements: one-time bonus.</p>
+  <p>Anti-duplication: every XP event has a unique key (quest + period, habit + date, session, boss, achievement). A key can exist only once; undo and redo toggles the same record.</p>
+  <p>Attributes: attribute level = <code>1 + floor(√(attributeXP ÷ 15))</code>, where attributeXP is the XP earned from items tagged with that attribute.</p>
+  <p>Dates use your device's local time. Days roll over at local midnight and weeks start on Monday.</p></div></section>
+  <section class="panel col2"><h2>About saving &amp; localStorage</h2><div class="doc">
+  <p>Progress saves automatically in this browser's localStorage on this device. It does not sync between devices or browsers.</p>
+  <ul style="padding-left:18px;margin:0"><li>Clearing site data, private/incognito mode, uninstalling the browser or some "storage cleanup" tools can erase it.</li><li>iOS Safari may clear data for sites you have not visited for about 7 days (installed Home Screen apps are treated better).</li><li>Storage is limited to roughly 5 MB, which is years of normal use.</li><li><b>Download a backup regularly</b> (weekly is a good habit) and keep it in cloud storage or email it to yourself.</li></ul></div></section>
+  </div>`;
+}
+
+/* ============ render ============ */
+let renderedDate=today();
+function render(){
+  renderedDate=today();
+  $('#nav').innerHTML=TABS.map(([k,i,l])=>`<button class="${ui.view===k?'on':''}" data-act="nav" data-view="${k}" aria-label="${l}" ${ui.view===k?'aria-current="page"':''}><i>${i}</i>${l}</button>`).join('');
+  const info=levelInfo(totalXP());$('#topinfo').textContent=`LV ${info.level} · ${rankOf(info.level).r}-RANK · ${new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}`;
+  const b=[];
+  if(!storageOK)b.push('<div class="banner">Browser storage is unavailable, so progress will not be saved after you close this page. Download a backup from the System tab.</div>');
+  if(loadNote)b.push(`<div class="banner">${esc(loadNote)}</div>`);
+  const xp=totalXP(),lb=state.settings.lastBackup;
+  if(xp>0&&(!lb||Date.now()-lb>14*864e5)&&ui.view!=='system')b.push('<div class="banner">Backup reminder: you have not downloaded a backup recently. <button class="btn sm" data-act="nav" data-view="system">Back up now</button></div>');
+  $('#banners').innerHTML=b.join('');
+  const v={status:viewStatus,quests:viewQuests,track:viewTrack,boss:viewBoss,log:viewLog,system:viewSystem}[ui.view]();
+  $('#view').innerHTML=v;
+  const k=$('#af_kind');if(k){k.onchange=syncKind;syncKind()}
+  const af=$('#actForm');if(af)af.onsubmit=submitActivity;
+  const adj=$('#adjForm');if(adj)adj.onsubmit=submitAdj;
+  tickTimer();
+}
+const syncKind=()=>{const w=$('#af_distwrap');if(w)w.hidden=$('#af_kind').value!=='running'};
+function submitActivity(e){
+  e.preventDefault();
+  const kind=$('#af_kind').value,minutes=Math.round(num($('#af_min').value)),date=$('#af_date').value,distance=Math.max(0,num($('#af_dist').value)),note=$('#af_note').value.trim();
+  if(!(minutes>=1&&minutes<=600))return toast('Enter minutes between 1 and 600.','warn');
+  if(!validDate(date)||date>today())return toast('Choose a valid date that is not in the future.','warn');
+  addActivity({kind,minutes,date,distance:kind==='running'?Math.min(100,distance):0,note});
+}
+function submitAdj(e){
+  e.preventDefault();
+  const xp=Math.round(num($('#adj_xp').value)),reason=$('#adj_reason').value.trim(),attr=$('#adj_attr').value;
+  if(!xp||Math.abs(xp)>500)return toast('Enter a non-zero amount up to 500.','warn');
+  if(!reason)return toast('A reason is required.','warn');
+  const id=uid();award('adj:'+id,xp,attr,`Manual correction: ${reason}`,'manual');audit(`Manual XP correction ${xp>0?'+':''}${xp}: ${reason}`);commit();toast('Correction applied.','info');
+}
+/* timer */
+function tickTimer(){
+  clearInterval(ui.timerTick);const c=$('#timerClock');if(!c||!state.timer)return;
+  const f=()=>{const s=Math.floor((Date.now()-state.timer.start)/1000);c.textContent=`${pad(Math.floor(s/3600))}:${pad(Math.floor(s%3600/60))}:${pad(s%60)}`};f();ui.timerTick=setInterval(f,1000);
+}
+
+/* ============ forms ============ */
+function questForm(id){
+  const q=id?state.quests.find(x=>x.id===id):null;
+  const v=q||{title:'',type:'daily',difficulty:'normal',xp:25,attr:'DIS',notes:'',deadline:''};
+  openModal(`<h3>${q?'Edit quest':'New quest'}</h3><form id="qf" autocomplete="off">
+  <label>Title<input id="qf_title" required maxlength="80" value="${esc(v.title)}"></label>
+  <div class="grid2"><label>Type<select id="qf_type">${opts({daily:'Daily',weekly:'Weekly',long:'Long-term'},v.type)}</select></label><label>Difficulty<select id="qf_diff">${opts(DIFF,v.difficulty)}</select></label></div>
+  <div class="grid2"><label>XP reward (1–500)<input id="qf_xp" type="number" min="1" max="500" required value="${v.xp}"></label><label>Attribute<select id="qf_attr">${opts(ATTRS,v.attr)}</select></label></div>
+  <label id="qf_dlw">Target date (optional)<input id="qf_dl" type="date" value="${esc(v.deadline)}"></label>
+  <label>Notes<textarea id="qf_notes" maxlength="300">${esc(v.notes)}</textarea></label>
+  <p class="hint">Changing XP affects future completions only. Past completions keep the XP they earned.</p>
+  <div class="btnrow"><button type="button" class="btn ghost" data-act="closeModal">Cancel</button><button class="btn primary" type="submit">Save</button></div></form>`,m=>{
+    const sync=()=>{$('#qf_dlw',m).hidden=$('#qf_type',m).value!=='long'};sync();$('#qf_type',m).onchange=sync;
+    $('#qf_diff',m).onchange=()=>{$('#qf_xp',m).value=DIFF[$('#qf_diff',m).value].xp};
+    $('#qf',m).onsubmit=e=>{e.preventDefault();
+      const title=$('#qf_title',m).value.trim();if(!title)return toast('Give the quest a title.','warn');
+      const f={title,type:$('#qf_type',m).value,difficulty:$('#qf_diff',m).value,xp:clamp(Math.round(num($('#qf_xp',m).value,25)),1,500),attr:$('#qf_attr',m).value,notes:$('#qf_notes',m).value.trim(),deadline:$('#qf_dl',m).value};
+      if(f.type!=='long'||!validDate(f.deadline))f.deadline='';
+      if(q){Object.assign(q,f);audit(`Edited quest: ${f.title}`)}else state.quests.push(Object.assign({id:uid(),status:'active',createdAt:today(),progress:0},f));
+      closeModal();ui.questTab=f.type;commit();toast(q?'Quest updated.':'Quest created.','info');};
+    $('#qf_title',m).focus();
+  });
+}
+function habitForm(id){
+  const h=id?state.habits.find(x=>x.id===id):null,v=h||{name:'',attr:'DIS',xp:5,status:'active'};
+  openModal(`<h3>${h?'Edit habit':'New habit'}</h3><form id="hf" autocomplete="off"><label>Name<input id="hf_name" required maxlength="50" value="${esc(v.name)}"></label>
+  <div class="grid2"><label>XP per check-in (1–30)<input id="hf_xp" type="number" min="1" max="30" value="${v.xp}"></label><label>Attribute<select id="hf_attr">${opts(ATTRS,v.attr)}</select></label></div>
+  <div class="btnrow"><button type="button" class="btn ghost" data-act="closeModal">Cancel</button>${h?`<button type="button" class="btn ghost" id="hf_pause">${h.status==='paused'?'Resume':'Pause'}</button><button type="button" class="btn danger" id="hf_del">Delete</button>`:''}<button class="btn primary" type="submit">Save</button></div></form>`,m=>{
+    $('#hf',m).onsubmit=e=>{e.preventDefault();const f={name:$('#hf_name',m).value.trim(),xp:clamp(Math.round(num($('#hf_xp',m).value,5)),1,30),attr:$('#hf_attr',m).value};if(!f.name)return;
+      if(h)Object.assign(h,f);else state.habits.push(Object.assign({id:uid(),status:'active'},f));closeModal();commit()};
+    if(h){$('#hf_pause',m).onclick=()=>{h.status=h.status==='paused'?'active':'paused';closeModal();commit()};
+      $('#hf_del',m).onclick=()=>{closeModal();confirmDlg('Delete habit',`Delete "${esc(h.name)}"? Past check-ins and earned XP are kept in your history.`,'Delete',()=>{state.habits=state.habits.filter(x=>x.id!==h.id);audit('Deleted habit: '+h.name);commit()})}}
+  });
+}
+function critRow(c={metric:'studyMin',target:60,label:''}){
+  return `<div class="crit"><label style="margin:0">Goal<select class="c_m">${opts(CRIT,c.metric)}</select></label><label style="margin:0">Target<input class="c_t" type="number" min="1" value="${c.target}"></label><button type="button" class="btn sm danger c_x" aria-label="Remove goal">✕</button>
+  <label class="sp c_lw" style="margin:0">Label (custom goals)<input class="c_l" maxlength="50" value="${esc(c.label||'')}"></label></div>`;
+}
+function bossForm(id,prefill){
+  const b=id?state.bosses.find(x=>x.id===id):null,w0=weekStart(today());
+  const v=b||prefill||{title:'',weekKey:w0,difficulty:'normal',bonusXP:200,criteria:[{metric:'studyMin',target:300},{metric:'workoutCount',target:3}],notes:''};
+  const weeks={};[0,1,2,3].forEach(i=>weeks[addDays(w0,7*i)]=(i===0?'This week':i===1?'Next week':'In '+i+' weeks')+' · '+shortDate(addDays(w0,7*i)));
+  if(!weeks[v.weekKey])weeks[v.weekKey]='Week of '+shortDate(v.weekKey);
+  openModal(`<h3>${b?'Edit weekly boss':'New weekly boss'}</h3><form id="bf" autocomplete="off"><label>Boss name<input id="bf_title" required maxlength="60" value="${esc(v.title)}" placeholder="e.g. The Exam Golem"></label>
+  <div class="grid2"><label>Week<select id="bf_week">${opts(weeks,v.weekKey)}</select></label><label>Difficulty<select id="bf_diff">${opts(DIFF,v.difficulty)}</select></label></div>
+  <label>Bonus XP (1–1000)<input id="bf_xp" type="number" min="1" max="1000" value="${v.bonusXP}"></label>
+  <div id="critBox">${v.criteria.map(c=>critRow(c)).join('')}</div>
+  <div class="btnrow"><button type="button" class="btn sm" id="addCrit">+ Add goal</button></div>
+  <p class="hint warn">Healthy limits apply: max 6 workouts, 40 km running and 6 active days per week, so there is always room to rest.</p>
+  <label>Notes<textarea id="bf_notes" maxlength="300">${esc(v.notes||'')}</textarea></label>
+  <div class="btnrow"><button type="button" class="btn ghost" data-act="closeModal">Cancel</button><button class="btn primary" type="submit">Save boss</button></div></form>`,m=>{
+    const wire=()=>m.querySelectorAll('.crit').forEach(r=>{const mm=$('.c_m',r),sync=()=>{$('.c_lw',r).hidden=mm.value!=='manual';$('.c_t',r).max=CRIT_MAX[mm.value]};mm.onchange=sync;sync();$('.c_x',r).onclick=()=>{if(m.querySelectorAll('.crit').length>1)r.remove()}});
+    wire();$('#addCrit',m).onclick=()=>{$('#critBox',m).insertAdjacentHTML('beforeend',critRow());wire()};
+    $('#bf_diff',m).onchange=()=>{$('#bf_xp',m).value=DIFF_BONUS[$('#bf_diff',m).value]};
+    $('#bf',m).onsubmit=e=>{e.preventDefault();
+      const title=$('#bf_title',m).value.trim();if(!title)return;
+      const criteria=[...m.querySelectorAll('.crit')].map(r=>{const metric=$('.c_m',r).value;return{metric,target:clamp(Math.round(num($('.c_t',r).value,1)*10)/10,1,CRIT_MAX[metric]),label:$('.c_l',r).value.trim(),progress:0}});
+      const f={title,weekKey:$('#bf_week',m).value,difficulty:$('#bf_diff',m).value,bonusXP:clamp(Math.round(num($('#bf_xp',m).value,200)),1,1000),notes:$('#bf_notes',m).value.trim()};
+      if(b){f.criteria=criteria.map((c,i)=>{const old=b.criteria[i];return Object.assign(c,{progress:old&&old.metric===c.metric?old.progress:0})});Object.assign(b,f);audit('Adjusted boss: '+title)}
+      else state.bosses.push(Object.assign({id:uid(),status:'active',criteria},f));
+      closeModal();commit();toast(b?'Boss updated.':'Boss created.','info');};
+  });
+}
+function editActivity(id){
+  const a=state.activities.find(x=>x.id===id);if(!a)return;
+  openModal(`<h3>Edit session</h3><form id="ef"><p class="sub">${KINDS[a.kind].label}</p><div class="grid2"><label>Minutes<input id="ef_min" type="number" min="1" max="600" value="${a.minutes}"></label><label>Date<input id="ef_date" type="date" max="${today()}" value="${a.date}"></label></div>
+  ${a.kind==='running'?`<label>Distance km<input id="ef_dist" type="number" min="0" max="100" step="0.1" value="${a.distance||0}"></label>`:''}<label>Note<input id="ef_note" maxlength="120" value="${esc(a.note)}"></label>
+  <div class="btnrow"><button type="button" class="btn ghost" data-act="closeModal">Cancel</button><button class="btn primary" type="submit">Save</button></div></form>`,m=>{
+    $('#ef',m).onsubmit=e=>{e.preventDefault();const min=Math.round(num($('#ef_min',m).value)),d=$('#ef_date',m).value;
+      if(!(min>=1&&min<=600)||!validDate(d)||d>today())return toast('Check minutes and date.','warn');
+      audit(`Edited ${KINDS[a.kind].label}: ${a.minutes}→${min} min, ${a.date}→${d}`);a.minutes=min;a.date=d;a.note=$('#ef_note',m).value.trim();if(a.kind==='running')a.distance=Math.max(0,Math.min(100,num($('#ef_dist',m).value)));
+      closeModal();commit();toast('Session updated. XP recalculated.','info')};
+  });
+}
+function allAch(){
+  openModal(`<h3>Achievements</h3>${ACH.map(([id,n,d,xp])=>{const u=state.achievements[id];return `<div class="acc ${u?'':'locked'}"><div class="g">${u?'★':'?'}</div><div><b>${esc(n)}</b> <span class="sub">+${xp} XP</span><div class="sub">${esc(d)}${u?' · '+new Date(u).toLocaleDateString():''}</div></div></div>`}).join('')}<div class="btnrow"><button class="btn" data-act="closeModal">Close</button></div>`);
+}
+
+/* ============ data management ============ */
+const exportText=()=>JSON.stringify({app:'arise-life-rpg',version:1,exportedAt:new Date().toISOString(),data:state},null,2);
+function exportDl(){
+  const txt=exportText();state.settings.lastBackup=Date.now();save();
+  try{const url=URL.createObjectURL(new Blob([txt],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download=`arise-life-rpg-backup-${today()}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000)}catch(e){}
+  toast('Backup download started. If nothing downloads here, use "Show / copy backup text".','info');render();
+}
+function exportShow(){
+  const txt=exportText();state.settings.lastBackup=Date.now();save();
+  const box=$('#exportBox');box.innerHTML=`<p class="hint">Copy this text and save it in a note or file named <code>backup.json</code>.</p><pre class="json" id="exportPre"></pre><div class="btnrow"><button class="btn sm primary" id="copyBtn">Copy to clipboard</button></div>`;
+  $('#exportPre').textContent=txt;
+  $('#copyBtn').onclick=async()=>{try{await navigator.clipboard.writeText(txt);toast('Copied.','info')}catch(e){const r=document.createRange();r.selectNodeContents($('#exportPre'));const s=getSelection();s.removeAllRanges();s.addRange(r);toast('Select and copy the text shown.','warn')}};
+}
+function applyImport(text){
+  let o;try{o=JSON.parse(text)}catch(e){return toast('That is not valid JSON.','warn')}
+  if(o&&o.app==='arise-life-rpg'&&o.data)o=o.data;
+  let s;try{s=migrate(o)}catch(e){return toast('Not a valid backup: '+e.message,'warn')}
+  if(!Array.isArray(o.quests)||!Array.isArray(o.ledger))return toast('Not a valid Arise backup file.','warn');
+  s.timer=null;const info=levelInfo(Math.max(0,s.ledger.reduce((a,e)=>a+(e.voided?0:e.xp),0)));
+  confirmDlg('Import backup',`Replace current data with this backup?<br><br><b>${esc(s.player.name)}</b> · Level ${info.level} · ${s.quests.length} quests · ${s.completions.length} completions.<br><br>Your current data is kept as a one-time safety copy.`,'Replace my data',()=>{
+    try{localStorage.setItem(PREV,JSON.stringify(state))}catch(e){}
+    state=s;state.lastLevel=info.level;audit('Imported backup');save();ui.view='status';commit();toast('Backup imported.','info')},false);
+}
+function resetAll(){
+  openModal(`<h3>Reset everything</h3><p class="sub">This erases your level, XP, quests, history and settings. Type <b>RESET</b> to confirm.</p><input id="rs_in" autocomplete="off" aria-label="Type RESET"><div class="btnrow"><button class="btn ghost" data-act="closeModal">Cancel</button><button class="btn danger" id="rs_ok" disabled>Erase everything</button></div>`,m=>{
+    const i=$('#rs_in',m),b=$('#rs_ok',m);i.oninput=()=>{b.disabled=i.value.trim()!=='RESET'};
+    b.onclick=()=>{try{localStorage.setItem(PREV,JSON.stringify(state))}catch(e){}state=defaultState();ui.view='status';closeModal();commit();toast('All data reset.','info')};
+  });
+}
+
+/* ============ events ============ */
+const A={
+  nav:d=>{ui.view=d.view;render();scrollTo(0,0)},closeModal,
+  toggleQuest:d=>toggleQuest(d.id),
+  questTab:d=>{ui.questTab=d.tab;render()},
+  newQuest:()=>questForm(),editQuest:d=>questForm(d.id),
+  pauseQuest:d=>{const q=state.quests.find(x=>x.id===d.id);q.status=q.status==='paused'?'active':'paused';commit()},
+  deleteQuest:d=>{const q=state.quests.find(x=>x.id===d.id);confirmDlg('Delete quest',`Delete "${esc(q.title)}"? Completion history and XP already earned are kept.`,'Delete',()=>{state.quests=state.quests.filter(x=>x.id!==q.id);audit('Deleted quest: '+q.title);commit()})},
+  starter:()=>{seedStarter();commit()},
+  restToday:()=>toggleRest(today()),
+  habitCell:d=>toggleHabit(d.id,d.date),newHabit:()=>habitForm(),editHabit:d=>habitForm(d.id),
+  timerStart:()=>{state.timer={start:Date.now()};save();render()},
+  timerCancel:()=>{state.timer=null;save();render()},
+  timerStop:()=>{const m=Math.min(600,Math.max(1,Math.round((Date.now()-state.timer.start)/60000)));state.timer=null;save();render();$('#af_kind').value='study';syncKind();$('#af_min').value=m;$('#af_note').value='Timer session';$('#actForm').scrollIntoView({behavior:'smooth',block:'center'});toast(`Timer stopped: ${m} min. Review and press Log session.`,'info')},
+  newBoss:()=>bossForm(),editBoss:d=>bossForm(d.id),
+  pauseBoss:d=>{const b=state.bosses.find(x=>x.id===d.id);b.status=b.status==='paused'?'active':'paused';commit()},
+  deleteBoss:d=>{const b=state.bosses.find(x=>x.id===d.id);confirmDlg('Delete boss',`Delete "${esc(b.title)}"?`,'Delete',()=>{state.bosses=state.bosses.filter(x=>x.id!==b.id);audit('Deleted boss: '+b.title);commit()})},
+  manualInc:d=>{const b=state.bosses.find(x=>x.id===d.id),c=b.criteria[+d.i];c.progress=Math.max(0,num(c.progress)+num(d.d));commit()},
+  rate:d=>{const b=state.bosses.find(x=>x.id===d.id);b.review=Object.assign(b.review||{note:''},{rating:d.r});save();render()},
+  planNext:d=>{const b=state.bosses.find(x=>x.id===d.id),f={easy:1.15,right:1,hard:.8}[(b.review||{}).rating]||1;
+    bossForm(null,{title:b.title,weekKey:addDays(b.weekKey,7),difficulty:b.difficulty,bonusXP:b.bonusXP,notes:b.notes,criteria:b.criteria.map(c=>({metric:c.metric,label:c.label,target:clamp(Math.max(1,Math.round(c.target*f*10)/10),1,CRIT_MAX[c.metric])}))})},
+  logTab:d=>{ui.logTab=d.tab;render()},
+  voidEntry:d=>setVoid(d.id,true),restoreEntry:d=>setVoid(d.id,false),
+  voidAct:d=>{const a=state.activities.find(x=>x.id===d.id);a.voided=true;audit('Voided session: '+KINDS[a.kind].label+' '+a.minutes+' min');commit()},
+  restoreAct:d=>{const a=state.activities.find(x=>x.id===d.id);a.voided=false;audit('Restored session: '+KINDS[a.kind].label+' '+a.minutes+' min');commit()},
+  editAct:d=>editActivity(d.id),allAch,
+  exportDl,exportShow,importFile:()=>$('#importInput').click(),
+  importPaste:()=>openModal(`<h3>Import from text</h3><textarea id="paste" style="min-height:180px" placeholder="Paste backup JSON here"></textarea><div class="btnrow"><button class="btn ghost" data-act="closeModal">Cancel</button><button class="btn primary" id="pasteOk">Continue</button></div>`,m=>{$('#pasteOk',m).onclick=()=>{const t=$('#paste',m).value;closeModal();applyImport(t)}}),
+  restorePrev:()=>{try{const raw=localStorage.getItem(PREV);confirmDlg('Restore safety copy','Replace current data with the copy saved before your last import or reset?','Restore',()=>{state=migrate(JSON.parse(raw));state.lastLevel=levelInfo(totalXP()).level;commit();toast('Safety copy restored.','info')},false)}catch(e){toast('Could not read the safety copy.','warn')}},
+  reset:resetAll,
+};
+function setVoid(id,v){
+  const e=state.ledger.find(x=>x.id===id);if(!e)return;e.voided=v;
+  const p=e.key.split(':');
+  if(p[0]==='quest'){const c=state.completions.find(c=>c.questId===p[1]&&c.periodKey===p[2]);if(c)c.voided=v}
+  if(p[0]==='habit'){const l=state.habitLogs.find(l=>l.habitId===p[1]&&l.date===p[2]);if(l)l.voided=v}
+  if(p[0]==='act'){const a=state.activities.find(a=>a.id===p[1]);if(a)a.voided=v}
+  audit(`${v?'Voided':'Restored'} XP entry: ${e.label} (${e.xp})`);commit();
+}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-act]');if(!t||t.disabled)return;const f=A[t.dataset.act];if(f)f(t.dataset)});
+document.addEventListener('change',e=>{
+  const t=e.target.closest('[data-change]');if(t){
+    const k=t.dataset.change;
+    if(k==='rename'){const n=t.value.trim().slice(0,24)||'Player';state.player.name=n;save();render()}
+    else if(k==='progress'){const q=state.quests.find(x=>x.id===t.dataset.id);q.progress=num(t.value);save();render()}
+    else if(k==='metric'){ui.metric=t.value;render()}
+    else if(k==='range'){ui.range=t.value;render()}
+    else if(k==='reviewNote'){const b=state.bosses.find(x=>x.id===t.dataset.id);b.review=Object.assign(b.review||{rating:null},{note:t.value.slice(0,400)});save()}
+  }
+  if(e.target.id==='importInput'){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{applyImport(String(r.result));e.target.value=''};r.onerror=()=>toast('Could not read that file.','warn');r.readAsText(f)}
+});
+
+/* ============ boot ============ */
+state=load();
+if(!state){state=defaultState();let first=true;try{first=localStorage.getItem(KEY)===null}catch(e){}if(first&&!loadNote){seedStarter()}}
+if(!state.lastActive)state.lastActive=null;
+recalcActivities();state.lastLevel=levelInfo(totalXP()).level;
+evaluateBosses();evaluateAchievements();state.lastLevel=levelInfo(totalXP()).level;save();
+render();pending.splice(0).forEach(([m,t])=>toast(m,t));
+const dayCheck=()=>{if(today()!==renderedDate){commit();toast('New day. Daily quests are fresh. History is kept.','info')}};
+setInterval(dayCheck,30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)dayCheck()});
+window.__rpg={get state(){return state},commit,today};  // handy for debugging/tests
+})();
+</script>

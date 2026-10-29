@@ -1,0 +1,21 @@
+ARISE LIFE RPG — QUICK START
+
+The ZIP contains your HTML at www/index.html and a Capacitor 8 starter.
+It is not itself an APK. The native android/ folder is generated during build.
+
+PHONE-ONLY CLOUD BUILD:
+1. Create a private GitHub repository.
+2. Upload files preserving paths: www/index.html, package.json, capacitor.config.ts, and .github/workflows/build-apk.yml.
+3. Open Actions > Build Arise Life RPG APK > Run workflow.
+4. When it succeeds, download artifact Arise-Life-RPG-debug-APK.
+5. Extract the artifact ZIP and install app-debug.apk after checking its source.
+
+COMPUTER BUILD:
+npm install
+npx cap add android
+npx cap sync android
+npx cap open android
+Then Android Studio > Build > Build Bundle(s) / APK(s) > Build APK(s).
+
+Requirements for local build: Node.js 22+, Android Studio + Android SDK.
+Make a backup of app progress before switching between browser and APK.
